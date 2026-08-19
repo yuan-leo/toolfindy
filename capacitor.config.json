@@ -1,0 +1,6 @@
+{
+  "appId": "app.findry.inventory",
+  "appName": "Findry",
+  "webDir": "mobile-dist",
+  "bundledWebRuntime": false
+}
