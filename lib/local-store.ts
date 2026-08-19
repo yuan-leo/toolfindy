@@ -156,6 +156,14 @@ export async function saveSheetConfig(config: SheetConfig) {
   await setSetting("sheet-config", config);
 }
 
+export async function getSyncEnabled() {
+  return (await setting<boolean>("sync-enabled")) ?? false;
+}
+
+export async function saveSyncEnabled(enabled: boolean) {
+  await setSetting("sync-enabled", enabled);
+}
+
 export async function createDailySnapshot(force = false) {
   const date = new Date().toISOString().slice(0, 10);
   const lastDate = await setting<string>("last-snapshot-date");

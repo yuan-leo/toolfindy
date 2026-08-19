@@ -2,6 +2,8 @@
 
 Findry is a local-first inventory for tools and miscellany. It runs as an installable website on Windows and macOS, works offline, keeps an append-only device history, exports portable JSON backups, and synchronizes with a human-readable Google Sheet.
 
+Sync is disabled by default. The sidebar switch persists on the device; while it is off, the interface performs no Google or other internet requests.
+
 ## Run locally
 
 Requires Node.js 22.13 or newer.
@@ -50,3 +52,7 @@ Findry creates `Items`, `Locations`, `History`, and `Settings` tabs when they ar
 ## Android
 
 `npm run build:mobile-web` creates a fully local mobile bundle in `mobile-dist`. The Capacitor configuration is in `capacitor.config.json`; detailed native setup notes are in `mobile/README.md`.
+
+## Portable Windows package
+
+`portable-windows` contains the dependency-free localhost server and double-click launcher used in the standalone Windows package. The packaged `app` directory comes from `npm run build:mobile-web`, and the packaged `runtime` directory contains the Windows Node.js executable. The server binds only to `127.0.0.1:4173`.

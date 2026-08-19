@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { HistoryEvent, InventoryState, Item, ItemStatus, ITEM_STATUSES, Location, SheetConfig, locationPath, makeId } from "@/lib/inventory";
-import { createDailySnapshot, downloadBackup, getSheetConfig, loadInventory, replaceFromSync, saveItem, saveLocation, saveSheetConfig } from "@/lib/local-store";
+import { createDailySnapshot, downloadBackup, getSheetConfig, getSyncEnabled, loadInventory, replaceFromSync, saveItem, saveLocation, saveSheetConfig, saveSyncEnabled } from "@/lib/local-store";
 import { authorizeGoogle, synchronizeSheets } from "@/lib/google-sheets";
 
 type View = "inventory" | "locations" | "history";
@@ -23,15 +23,17 @@ export default function InventoryApp() {
   const [itemDraft, setItemDraft] = useState<Partial<Item>>(blankItem());
   const [locationDraft, setLocationDraft] = useState<Partial<Location>>(blankLocation());
   const [sheetConfig, setSheetConfigState] = useState<SheetConfig>();
+  const [syncEnabled, setSyncEnabled] = useState(false);
   const [syncState, setSyncState] = useState<"local" | "connecting" | "syncing" | "synced" | "error">("local");
   const [toast, setToast] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const dialogFormRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    Promise.all([loadInventory(), getSheetConfig()]).then(([inventory, config]) => {
+    Promise.all([loadInventory(), getSheetConfig(), getSyncEnabled()]).then(([inventory, config, storedSyncEnabled]) => {
       setData(inventory);
       setSheetConfigState(config);
+      setSyncEnabled(storedSyncEnabled);
       setSelectedId(inventory.items.find((item) => !item.deletedAt)?.id ?? "");
       setLoading(false);
       createDailySnapshot().catch(() => undefined);
@@ -134,6 +136,7 @@ export default function InventoryApp() {
   }
 
   async function connectAndSync(config = sheetConfig) {
+    if (!syncEnabled) { setToast("Sync is disabled. Turn it on before connecting."); return; }
     if (!config) { setDialog("connect"); return; }
     try {
       setSyncState("connecting"); await authorizeGoogle(config.clientId); setSyncState("syncing");
@@ -150,6 +153,17 @@ export default function InventoryApp() {
     setDialog(null); setSheetConfigState(config); await saveSheetConfig(config); await connectAndSync(config);
   }
 
+  async function toggleSync(enabled: boolean) {
+    setSyncEnabled(enabled);
+    await saveSyncEnabled(enabled);
+    if (!enabled) {
+      setSyncState("local");
+      setToast("Sync disabled — Findry will stay entirely on this device");
+    } else {
+      setToast("Sync enabled — use Sync now when you want to contact Google Sheets");
+    }
+  }
+
   const attentionCount = activeItems.filter((item) => item.status === "Low stock" || item.status === "Needs repair").length;
 
   return (
@@ -162,15 +176,20 @@ export default function InventoryApp() {
           <button className={`nav-item ${view === "locations" ? "active" : ""}`} type="button" onClick={() => setView("locations")}><span aria-hidden="true">⌖</span> Locations</button>
           <button className={`nav-item ${view === "history" ? "active" : ""}`} type="button" onClick={() => setView("history")}><span aria-hidden="true">↺</span> History</button>
         </nav>
-        <div className="sync-card"><div className="sync-line"><span className={`sync-dot ${syncState}`} /><span>{syncState === "synced" ? "Sheet synchronized" : syncState === "syncing" || syncState === "connecting" ? "Connecting…" : syncState === "error" ? "Sync needs attention" : "Local cache ready"}</span></div><p>{sheetConfig ? "Google Sheet configured" : "Google Sheets not connected"}</p><button type="button" onClick={() => connectAndSync()} disabled={syncState === "syncing" || syncState === "connecting"}>{sheetConfig ? "Sync now" : "Connect sheet"}</button></div>
+        <div className="sync-card">
+          <div className="sync-line"><span className={`sync-dot ${!syncEnabled ? "disabled" : syncState}`} /><span>{!syncEnabled ? "Sync disabled" : syncState === "synced" ? "Sheet synchronized" : syncState === "syncing" || syncState === "connecting" ? "Connecting…" : syncState === "error" ? "Sync needs attention" : "Sync enabled"}</span></div>
+          <p>{!syncEnabled ? "Device-only mode" : sheetConfig ? "Google Sheet configured" : "Google Sheets not connected"}</p>
+          <label className="sync-toggle"><span>Allow web sync</span><input type="checkbox" role="switch" checked={syncEnabled} disabled={syncState === "syncing" || syncState === "connecting"} onChange={(event) => toggleSync(event.target.checked)} /><span className="toggle-track" aria-hidden="true"><span /></span></label>
+          <button type="button" onClick={() => connectAndSync()} disabled={!syncEnabled || syncState === "syncing" || syncState === "connecting"}>{sheetConfig ? "Sync now" : "Connect sheet"}</button>
+        </div>
       </aside>
 
       <section className="workspace" id="main-content" tabIndex={-1}>
-        <header className="topbar"><div><p className="eyebrow">Your workshop, indexed</p><h1>{view === "inventory" ? "Inventory" : view === "locations" ? "Locations" : "Change history"}</h1></div><div className="top-actions">{sheetConfig && <a className="quiet-button link-button" href={sheetConfig.sheetUrl} target="_blank" rel="noreferrer">Open sheet</a>}<button className="quiet-button" type="button" onClick={() => downloadBackup().then(() => setToast("Backup downloaded"))}>Backup</button>{view !== "history" && <button className="primary-button" type="button" onClick={view === "locations" ? openNewLocation : openNewItem}><span aria-hidden="true">＋</span> New {view === "locations" ? "location" : "item"} <kbd>N</kbd></button>}</div></header>
+        <header className="topbar"><div><p className="eyebrow">Your workshop, indexed</p><h1>{view === "inventory" ? "Inventory" : view === "locations" ? "Locations" : "Change history"}</h1></div><div className="top-actions">{syncEnabled && sheetConfig && <a className="quiet-button link-button" href={sheetConfig.sheetUrl} target="_blank" rel="noreferrer">Open sheet</a>}<button className="quiet-button" type="button" onClick={() => downloadBackup().then(() => setToast("Backup downloaded"))}>Backup</button>{view !== "history" && <button className="primary-button" type="button" onClick={view === "locations" ? openNewLocation : openNewItem}><span aria-hidden="true">＋</span> New {view === "locations" ? "location" : "item"} <kbd>N</kbd></button>}</div></header>
 
         {view === "inventory" && <>
           <section className="search-panel" aria-label="Search and filter inventory"><label className="search-box"><span aria-hidden="true">⌕</span><span className="sr-only">Search inventory</span><input ref={searchRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search tools, tags, IDs, or locations…" /><kbd>/</kbd></label><label><span className="sr-only">Filter by location</span><select className="filter-button" value={locationFilter} onChange={(event) => setLocationFilter(event.target.value)}><option>All locations</option>{data.locations.map((location) => <option value={location.id} key={location.id}>{locationPath(location.id, data.locations)}</option>)}</select></label><label><span className="sr-only">Filter by category</span><select className="filter-button" value={category} onChange={(event) => setCategory(event.target.value)}><option>All categories</option>{categories.map((name) => <option key={name}>{name}</option>)}</select></label></section>
-          <section className="summary-grid" aria-label="Inventory summary"><article><strong>{activeItems.length}</strong><span>Total items</span></article><article><strong>{data.locations.length}</strong><span>Locations</span></article><article><strong>{attentionCount}</strong><span>Need attention</span></article><article className="sync-summary"><strong>{sheetConfig ? (syncState === "synced" ? "Synced" : "Local+") : "Local"}</strong><span>{sheetConfig ? "Google Sheet linked" : "Working offline"}</span></article></section>
+          <section className="summary-grid" aria-label="Inventory summary"><article><strong>{activeItems.length}</strong><span>Total items</span></article><article><strong>{data.locations.length}</strong><span>Locations</span></article><article><strong>{attentionCount}</strong><span>Need attention</span></article><article className={`sync-summary ${!syncEnabled ? "offline" : ""}`}><strong>{!syncEnabled ? "Offline" : sheetConfig ? (syncState === "synced" ? "Synced" : "Local+") : "Ready"}</strong><span>{!syncEnabled ? "Sync disabled" : sheetConfig ? "Google Sheet linked" : "Sync available"}</span></article></section>
           <section className="inventory-card"><div className="section-heading"><div><h2>All items</h2><p>{visibleItems.length} matching item{visibleItems.length === 1 ? "" : "s"}</p></div><span className="key-hint"><kbd>↑</kbd><kbd>↓</kbd> move <kbd>Enter</kbd> open</span></div><div className="table-wrap"><table><thead><tr><th>Item</th><th>Category</th><th>Location</th><th>Qty.</th><th>Status</th></tr></thead><tbody>{visibleItems.map((item, index) => <tr id={`row-${item.id}`} key={item.id} tabIndex={item.id === selectedId || (!selectedId && index === 0) ? 0 : -1} aria-selected={item.id === selectedId} onFocus={() => setSelectedId(item.id)} onClick={() => setSelectedId(item.id)} onDoubleClick={() => openEditItem(item)}><td><strong>{item.name}</strong><span className="item-id">{item.id}</span></td><td>{item.category}</td><td>{locationPath(item.locationId, data.locations)}</td><td>{item.quantity}</td><td><span className={`status ${item.status.toLowerCase().replaceAll(" ", "-")}`}>{item.status}</span></td></tr>)}</tbody></table>{!loading && visibleItems.length === 0 && <div className="empty-state"><strong>No items found</strong><span>Try another search or press N to add one.</span></div>}</div></section>
         </>}
 

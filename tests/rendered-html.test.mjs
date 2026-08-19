@@ -28,7 +28,9 @@ test("keeps local-first, keyboard, Sheets, and PWA capabilities in the build", a
     readFile(new URL("../public/sw.js", import.meta.url), "utf8"),
   ]);
   assert.match(app, /ArrowDown|requestSubmit|aria-live/);
+  assert.match(app, /Allow web sync|role="switch"|Sync disabled/);
   assert.match(localStore, /indexedDB\.open|snapshots|downloadBackup/);
+  assert.match(localStore, /getSyncEnabled|sync-enabled/);
   assert.match(sheets, /sheets\.googleapis\.com|authorizeGoogle|batchUpdate/);
   assert.match(manifest, /"display": "standalone"/);
   assert.match(serviceWorker, /caches\.open/);
