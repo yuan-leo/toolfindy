@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { headers } from "next/headers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,18 +12,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const requestHeaders = await headers();
-  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "localhost:3000";
-  const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const imageUrl = `${protocol}://${host}/og.png`;
-  const title = "Findry — Tool Inventory";
+export function generateMetadata(): Metadata {
+  const title = "Tool Findy — Tool Inventory";
   const description = "A local-first, searchable home for tools and miscellany.";
   return {
     title, description, manifest: "/manifest.webmanifest",
     icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
-    openGraph: { title, description, type: "website", images: [{ url: imageUrl, width: 1200, height: 630, alt: "Findry — Your workshop, indexed." }] },
-    twitter: { card: "summary_large_image", title, description, images: [imageUrl] },
+    openGraph: { title, description, type: "website" },
+    twitter: { card: "summary", title, description },
   };
 }
 
@@ -35,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head><meta name="theme-color" content="#152724" /></head>
+      <head><meta name="theme-color" content="#152724" /><meta name="referrer" content="no-referrer-when-downgrade" /></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

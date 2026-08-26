@@ -23,6 +23,7 @@ export interface Location {
   createdAt: string;
   updatedAt: string;
   version: number;
+  deletedAt: string;
 }
 
 export interface HistoryEvent {
@@ -74,13 +75,13 @@ export function locationPath(locationId: string, locations: Location[]) {
 const now = new Date().toISOString();
 
 export const seedLocations: Location[] = [
-  { id: "LOC-GARAGE", name: "Garage", parentId: "", notes: "", createdAt: now, updatedAt: now, version: 1 },
-  { id: "LOC-CABINET-A", name: "Cabinet A", parentId: "LOC-GARAGE", notes: "Left wall", createdAt: now, updatedAt: now, version: 1 },
-  { id: "LOC-DRAWER-3", name: "Drawer 3", parentId: "LOC-GARAGE", notes: "", createdAt: now, updatedAt: now, version: 1 },
-  { id: "LOC-BIN-B14", name: "Bin B14", parentId: "LOC-GARAGE", notes: "Small hardware", createdAt: now, updatedAt: now, version: 1 },
-  { id: "LOC-WORKSHOP", name: "Workshop", parentId: "", notes: "", createdAt: now, updatedAt: now, version: 1 },
-  { id: "LOC-RED-TOTE", name: "Red tote", parentId: "LOC-WORKSHOP", notes: "Electrical kit", createdAt: now, updatedAt: now, version: 1 },
-  { id: "LOC-SHELF-2", name: "Shelf 2", parentId: "LOC-WORKSHOP", notes: "", createdAt: now, updatedAt: now, version: 1 },
+  { id: "LOC-GARAGE", name: "Garage", parentId: "", notes: "", createdAt: now, updatedAt: now, version: 1, deletedAt: "" },
+  { id: "LOC-CABINET-A", name: "Cabinet A", parentId: "LOC-GARAGE", notes: "Left wall", createdAt: now, updatedAt: now, version: 1, deletedAt: "" },
+  { id: "LOC-DRAWER-3", name: "Drawer 3", parentId: "LOC-GARAGE", notes: "", createdAt: now, updatedAt: now, version: 1, deletedAt: "" },
+  { id: "LOC-BIN-B14", name: "Bin B14", parentId: "LOC-GARAGE", notes: "Small hardware", createdAt: now, updatedAt: now, version: 1, deletedAt: "" },
+  { id: "LOC-WORKSHOP", name: "Workshop", parentId: "", notes: "", createdAt: now, updatedAt: now, version: 1, deletedAt: "" },
+  { id: "LOC-RED-TOTE", name: "Red tote", parentId: "LOC-WORKSHOP", notes: "Electrical kit", createdAt: now, updatedAt: now, version: 1, deletedAt: "" },
+  { id: "LOC-SHELF-2", name: "Shelf 2", parentId: "LOC-WORKSHOP", notes: "", createdAt: now, updatedAt: now, version: 1, deletedAt: "" },
 ];
 
 export const seedItems: Item[] = [

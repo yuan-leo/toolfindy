@@ -1,6 +1,6 @@
 {
   "appId": "app.findry.inventory",
-  "appName": "Findry",
+  "appName": "Tool Findy",
   "webDir": "mobile-dist",
   "bundledWebRuntime": false
 }

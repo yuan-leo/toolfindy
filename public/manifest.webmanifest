@@ -1,6 +1,6 @@
 {
-  "name": "Findry Tool Inventory",
-  "short_name": "Findry",
+  "name": "Tool Findy Inventory",
+  "short_name": "Tool Findy",
   "description": "A local-first, searchable home for tools and miscellany.",
   "start_url": "/",
   "display": "standalone",

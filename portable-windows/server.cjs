@@ -36,6 +36,7 @@ const server = http.createServer((request, response) => {
       "content-type": types[path.extname(filePath).toLowerCase()] || "application/octet-stream",
       "cache-control": filePath.endsWith("index.html") ? "no-cache" : "public, max-age=31536000, immutable",
       "cross-origin-opener-policy": "same-origin-allow-popups",
+      "referrer-policy": "no-referrer-when-downgrade",
       "x-content-type-options": "nosniff",
     });
     response.end(data);
@@ -43,16 +44,16 @@ const server = http.createServer((request, response) => {
 });
 
 server.on("error", (error) => {
-  console.error("\nFindry could not start on http://127.0.0.1:4173");
-  console.error(error.code === "EADDRINUSE" ? "Findry may already be running. Check your browser." : error.message);
+  console.error("\nTool Findy could not start on http://127.0.0.1:4173");
+  console.error(error.code === "EADDRINUSE" ? "Tool Findy may already be running. Check your browser." : error.message);
   process.exitCode = 1;
 });
 
 server.listen(port, host, () => {
   const url = `http://${host}:${port}`;
-  console.log("Findry is running fully locally.");
+  console.log("Tool Findy is running locally.");
   console.log(`Open ${url} if your browser does not appear.`);
-  console.log("Close this window to stop Findry.\n");
+  console.log("Close this window to stop Tool Findy.\n");
   if (process.env.FINDRY_NO_BROWSER !== "1") {
     spawn("cmd.exe", ["/c", "start", "", url], { detached: true, stdio: "ignore" }).unref();
   }
