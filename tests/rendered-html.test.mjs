@@ -14,7 +14,7 @@ test("renders the Tool Findy application shell", async () => {
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
-  assert.match(html, /<title>Tool Findy — Tool Inventory<\/title>/i);
+  assert.match(html, /<title>Tool Findy - Tool Inventory<\/title>/i);
   assert.match(html, /Tool Findy/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
@@ -41,6 +41,8 @@ test("keeps local-first, keyboard, Sheets, and PWA capabilities in the build", a
   assert.match(app, /Add location|locationReturnDialog/);
   assert.match(app, /openNewLocation\("batch"\)|setBatchLocationId\(location\.id\)/);
   assert.match(app, /locationOptions.*flattenLocationTree|children.*localeCompare|visit\(location\.id, depth \+ 1\)/s);
+  assert.match(app, /LocationCombobox|filterAndRankLocationOptions|aria-autocomplete="list"/);
+  assert.match(app, /bottommostMatch|startsWithSearch|matchLevel/);
   assert.match(app, /Delete location|delete-location|Confirm deletion/);
   assert.match(app, /Recycle bin|confirmDeleteLocation|activeLocations/);
   assert.match(app, /Allow web sync|role="switch"|Sync disabled/);
@@ -67,3 +69,4 @@ test("keeps local-first, keyboard, Sheets, and PWA capabilities in the build", a
   assert.doesNotMatch(portableServer, /OPENAI_API_KEY|\/api\/sort-recommendations/);
   await assert.rejects(access(new URL("../app/_sites-preview/SkeletonPreview.tsx", import.meta.url)));
 });
+
