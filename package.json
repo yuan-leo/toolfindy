@@ -10,7 +10,9 @@
     "build": "vinext build",
     "start": "vinext start",
     "build:mobile-web": "vite build --config vite.mobile.config.ts",
+    "build:standalone": "vite build --config vite.standalone.config.ts --mode standalone && node scripts/inline-standalone.mjs",
     "test": "node --test tests/rendered-html.test.mjs",
+    "test:standalone": "npm run build:standalone && node --test tests/standalone-build.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },

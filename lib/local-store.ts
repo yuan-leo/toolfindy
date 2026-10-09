@@ -1,7 +1,7 @@
 import { HistoryEvent, InventoryState, Item, ITEM_STATUSES, Location, SheetConfig, makeId, seedItems, seedLocations } from "./inventory";
 import { SortDraft } from "./sorting";
 
-const DB_NAME = "findry-inventory";
+const DB_NAME = import.meta.env.MODE === "standalone" ? "tool-findy-standalone-inventory" : "findry-inventory";
 const DB_VERSION = 2;
 const DEVICE_KEY = "device-id";
 export const RECYCLE_BIN_LOCATION_ID = "LOC-RECYCLE-BIN";
